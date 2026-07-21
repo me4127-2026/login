@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Faculty Dashboard | ME4261</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;}
+body{
+  font-family:"Segoe UI",Arial,sans-serif;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  min-height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+}
+.card{
+  background:#fff;
+  width:100%;
+  max-width:900px;
+  margin:16px 10px;
+  padding:22px;
+  border-radius:16px;
+  box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+h1{text-align:center;color:#e67e22;margin-bottom:4px;}
+h2{text-align:center;color:#555;font-size:14px;margin-bottom:20px;}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+}
+button:disabled{opacity:.6;cursor:not-allowed;}
+
+.btn-main{background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;}
+.btn-red{background:#c0392b;color:#fff;}
+.btn-close{background:#7f8c8d;color:#fff;}
+
+.btn-blue{background:#1976d2;color:#fff;}
+
+.section{display:none;margin-top:18px;}
+.testBlock{margin-top:14px;}
+.testBtn{font-size:16px;border-radius:14px;}
+
+.testPanel{
+  display:none;
+  margin-top:10px;
+  background:#f3f5f7;
+  border-radius:14px;
+  padding:12px;
+}
+
+.subCard{
+  background:#fff;
+  border-radius:12px;
+  padding:14px;
+  margin-top:12px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.08);
+}
+
+.radioRow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 0;
+  font-weight:600;
+}
+
+.customList{
+  display:none;
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  max-height:160px;
+  overflow:auto;
+}
+.customList label{display:block;margin-bottom:8px;}
+
+#loaderOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,0.85);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.spinner{
+  width:48px;
+  height:48px;
+  border:5px solid #ddd;
+  border-top:5px solid #e67e22;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+
+<body>
+<div class="card">
+
+<h1>Faculty Dashboard</h1>
+<h2>Energy Storage Technology · ME4261</h2>
+
+<div id="home">
+  <button class="btn-main" onclick="openClassTest()">Conduct Class Test</button>
+  <button class="btn-blue" onclick="openDownloads()">
+  Manage Downloads
+</button>
+  <button class="btn-red" onclick="logout()">Logout</button>
+</div>
+<div id="downloadsSection" class="section">
+  <h2>Upload Lecture Notes</h2>
+
+  <div class="subCard">
+    <input type="file" id="pdfFile" accept="application/pdf" style="margin-bottom:12px;">
+    <button class="btn-main" onclick="uploadPDF()">Upload PDF</button>
+  </div>
+
+  <button class="btn-close" onclick="closeDownloads()">Close</button>
+</div>
+<div id="classTest" class="section">
+  <h2>Conduct Class Test</h2>
+
+  <div class="testBlock">
+    <button class="testBtn btn-blue" onclick="toggleTest('CT1')">
+  Class Test – I
+  <span id="status_CT1" style="font-size:13px;margin-left:6px;"></span>
+</button>
+
+    <div id="CT1" class="testPanel">
+
+      <div class="subCard">
+        <label class="radioRow">
+          <input type="radio" name="action_CT1" onclick="showEnable('CT1')">
+          Enable Class Test
+        </label>
+        <label class="radioRow">
+          <input type="radio" name="action_CT1" onclick="showEvaluate('CT1')">
+          Evaluate Class Test
+        </label>
+      </div>
+
+      <div id="enable_CT1" class="subCard" style="display:none;">
+        <label class="radioRow">
+          <input type="radio" name="enable_CT1" value="ALL" onclick="hideCustom('CT1')">
+          Enable for all students
+        </label>
+        <label class="radioRow">
+          <input type="radio" name="enable_CT1" value="ATTENDED" onclick="hideCustom('CT1')">
+          Enable for attended students
+        </label>
+        <label class="radioRow">
+          <input type="radio" name="enable_CT1" value="CUSTOM" onclick="showCustom('CT1')">
+          Custom selection
+        </label>
+
+        <div id="custom_CT1" class="customList"></div>
+
+        <button class="btn-main" onclick="enableTest('CT1')">Enable Test</button>
+      </div>
+
+      <div id="eval_CT1" class="subCard" style="display:none;">
+       <button class="btn-main"
+        id="evalBtn_CT1"
+        onclick="evaluateTest('CT1')">
+  Evaluate & Publish Results
+</button>
+      </div>
+
+    </div>
+  </div>
+<div class="testBlock">
+<button class="testBtn btn-blue" onclick="toggleTest('CT2')">
+  Class Test – II
+  <span id="status_CT2" style="font-size:13px;margin-left:6px;"></span>
+</button>
+
+<div id="CT2" class="testPanel">
+
+<div class="subCard">
+<label class="radioRow">
+<input type="radio" name="action_CT2" onclick="showEnable('CT2')">
+Enable Class Test
+</label>
+
+<label class="radioRow">
+<input type="radio" name="action_CT2" onclick="showEvaluate('CT2')">
+Evaluate Class Test
+</label>
+</div>
+
+<div id="enable_CT2" class="subCard" style="display:none;">
+
+<label class="radioRow">
+<input type="radio" name="enable_CT2" value="ALL" onclick="hideCustom('CT2')">
+Enable for all students
+</label>
+
+<label class="radioRow">
+<input type="radio" name="enable_CT2" value="ATTENDED" onclick="hideCustom('CT2')">
+Enable for attended students
+</label>
+
+<label class="radioRow">
+<input type="radio" name="enable_CT2" value="CUSTOM" onclick="showCustom('CT2')">
+Custom selection
+</label>
+
+<div id="custom_CT2" class="customList"></div>
+
+<button class="btn-main" onclick="enableTest('CT2')">Enable Test</button>
+
+</div>
+
+<div id="eval_CT2" class="subCard" style="display:none;">
+<button class="btn-main"
+id="evalBtn_CT2"
+onclick="evaluateTest('CT2')">
+Evaluate & Publish Results
+</button>
+</div>
+
+</div>
+  
+</div>
+  <div class="testBlock">
+<button class="testBtn btn-blue" onclick="toggleTest('CT3')">
+  Class Test – III
+  <span id="status_CT3" style="font-size:13px;margin-left:6px;"></span>
+</button>
+
+<div id="CT3" class="testPanel">
+
+<div class="subCard">
+<label class="radioRow">
+<input type="radio" name="action_CT3" onclick="showEnable('CT3')">
+Enable Class Test
+</label>
+
+<label class="radioRow">
+<input type="radio" name="action_CT3" onclick="showEvaluate('CT3')">
+Evaluate Class Test
+</label>
+</div>
+
+<div id="enable_CT3" class="subCard" style="display:none;">
+
+<label class="radioRow">
+<input type="radio" name="enable_CT3" value="ALL" onclick="hideCustom('CT3')">
+Enable for all students
+</label>
+
+<label class="radioRow">
+<input type="radio" name="enable_CT3" value="ATTENDED" onclick="hideCustom('CT3')">
+Enable for attended students
+</label>
+
+<label class="radioRow">
+<input type="radio" name="enable_CT3" value="CUSTOM" onclick="showCustom('CT3')">
+Custom selection
+</label>
+
+<div id="custom_CT3" class="customList"></div>
+
+<button class="btn-main" onclick="enableTest('CT3')">Enable Test</button>
+
+</div>
+
+<div id="eval_CT3" class="subCard" style="display:none;">
+<button class="btn-main"
+id="evalBtn_CT3"
+onclick="evaluateTest('CT3')">
+Evaluate & Publish Results
+</button>
+</div>
+
+</div>
+  
+</div>
+  <button class="btn-close" onclick="closeSection()">Close</button>
+</div>
+
+<div id="loaderOverlay">
+  <div class="spinner"></div>
+  <div style="margin-top:12px;font-weight:600;">Loading…</div>
+</div>
+
+</div>
+<script src="config.js"></script>
+<script>
+/* ========= CONFIG ========= */
+const BACKEND = BACKEND_URL;
+
+/* ========= AUTH ========= */
+const facultyToken = sessionStorage.getItem("facultyToken");
+if(!facultyToken){
+  sessionStorage.clear();
+  location.replace("faculty_login.html");
+}
+ 
+let testStatus = {};
+
+fetch(BACKEND,{
+  method:"POST",
+  body:new URLSearchParams({
+    action: "getAllTestsStatus",
+    token: facultyToken
+  })
+})
+.then(r=>r.json())
+.then(res=>{
+  if(res.status === "OK"){
+    res.tests.forEach(t=>{
+      testStatus[t.id] = t.evaluated;
+    });
+  }
+});
+
+
+/* ========= GLOBAL ========= */
+let allStudents = [];
+
+/* ========= LOAD STUDENTS ========= */
+fetch(BACKEND,{
+  method:"POST",
+  body:new URLSearchParams({
+    action:"getAllStudents",
+    token: facultyToken
+  })
+})
+.then(r=>r.json())
+.then(res=>{
+  if(res.status==="OK") allStudents = res.students;
+});
+
+/* ========= NAV ========= */
+function openClassTest(){
+  home.style.display="none";
+  classTest.style.display="block";
+}
+function closeSection(){
+  classTest.style.display="none";
+  home.style.display="block";
+}
+
+/* ========= ACCORDION ========= */
+function toggleTest(id){
+  updateTestStatus(id);
+
+  document.querySelectorAll(".testPanel").forEach(p=>{
+    if(p.id!==id) p.style.display="none";
+  });
+const btn = document.getElementById("evalBtn_" + id);
+if(btn && testStatus[id]){
+  btn.disabled = true;
+  btn.innerText = "Results Published";
+  btn.style.opacity = "0.6";
+  btn.style.cursor = "not-allowed";
+}
+  const p=document.getElementById(id);
+  p.style.display=p.style.display==="block"?"none":"block";
+}
+function openDownloads(){
+  home.style.display="none";
+  downloadsSection.style.display="block";
+}
+
+function closeDownloads(){
+  downloadsSection.style.display="none";
+  home.style.display="block";
+}
+function showEnable(id){
+  hideCustom(id);
+  document.getElementById("enable_"+id).style.display="block";
+  document.getElementById("eval_"+id).style.display="none";
+}
+function showEvaluate(id){
+  document.getElementById("eval_"+id).style.display="block";
+  document.getElementById("enable_"+id).style.display="none";
+}
+function updateTestStatus(testId){
+  const s = document.getElementById("status_" + testId);
+  if(!s) return;
+
+  if(testStatus[testId]){
+    s.innerHTML = "🟢 Evaluated";
+  } else {
+    s.innerHTML = "🔴 Not Evaluated";
+  }
+}
+function showCustom(id){
+  const box=document.getElementById("custom_"+id);
+  box.style.display="block";
+
+  if(box.innerHTML.trim()) return;
+
+  box.innerHTML = allStudents.map(s=>`
+    <label>
+      <input type="checkbox" value="${s.roll}">
+      ${s.roll} – ${s.name}
+    </label>
+  `).join("");
+}
+function hideCustom(id){
+  document.getElementById("custom_"+id).style.display="none";
+}
+function uploadPDF(){
+
+  const fileInput = document.getElementById("pdfFile");
+  const file = fileInput.files[0];
+
+  if(!file){
+    alert("Select a PDF file");
+    return;
+  }
+
+  if(file.type !== "application/pdf"){
+    alert("Only PDF files allowed");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(){
+    const base64 = reader.result.split(",")[1];
+
+    showLoader();
+
+    fetch(BACKEND,{
+      method:"POST",
+      body:new URLSearchParams({
+        action:"uploadDownload",
+        token: facultyToken,
+        fileName: file.name,
+        fileData: base64
+      })
+    })
+    .then(r=>r.json())
+    .then(res=>{
+      hideLoader();
+      if(res.status === "OK" || res.status === "UPDATED"){
+        alert("Upload Successful");
+        fileInput.value="";
+      } else {
+        alert("Upload Failed");
+      }
+    });
+  };
+
+  reader.readAsDataURL(file);
+}
+/* ========= ENABLE TEST ========= */
+function enableTest(testId){
+  const mode=document.querySelector(`input[name="enable_${testId}"]:checked`);
+  if(!mode){ alert("Select enable mode"); return; }
+
+  let rolls="";
+  if(mode.value==="CUSTOM"){
+    const c=[...document.querySelectorAll(`#custom_${testId} input:checked`)];
+    if(!c.length){ alert("Select students"); return; }
+    rolls=c.map(x=>x.value).join(",");
+  }
+
+  showLoader();
+
+  fetch(BACKEND,{
+    method:"POST",
+    body:new URLSearchParams({
+      action:"enableClassTest",
+      token: facultyToken,
+      testId,
+      mode: mode.value,
+      rolls
+    })
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    hideLoader();
+    alert(res.status==="OK"?"Test Enabled":"Enable Failed");
+  });
+}
+
+/* ========= EVALUATE ========= */
+function evaluateTest(testId){
+  if(!confirm("Evaluate and publish results?")) return;
+  showLoader();
+
+  fetch(BACKEND,{
+    method:"POST",
+    body:new URLSearchParams({
+      action:"evaluateTest",
+      token: facultyToken,
+      testId
+    })
+  })
+  .then(r=>r.json())
+  .then(res=>{
+  hideLoader();
+
+  if(res.status === "EVALUATED"){
+  alert("Results Published");
+
+  testStatus[testId] = true;
+  updateTestStatus(testId);
+
+  const btn = document.getElementById("evalBtn_" + testId);
+  if(btn){
+    btn.disabled = true;
+    btn.innerText = "Results Published";
+    btn.style.opacity = "0.6";
+    btn.style.cursor = "not-allowed";
+  }
+}
+  else {
+    alert("Evaluation Failed");
+  }
+});
+}
+
+/* ========= LOADER ========= */
+function showLoader(){
+  loaderOverlay.style.display="flex";
+}
+function hideLoader(){
+  loaderOverlay.style.display="none";
+}
+
+/* ========= LOGOUT ========= */
+function logout(){
+  if(!confirm("Are you sure you want to logout?")) return;
+  sessionStorage.clear();
+  location.replace("faculty_login.html");
+}
+</script>
+
+</body>
+</html>
