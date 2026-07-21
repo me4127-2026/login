@@ -531,21 +531,27 @@ const BACKEND=BACKEND_URL;
 const token=sessionStorage.getItem("token");
 if(!token){
   location.replace("index.html");
-}  
+} 
+
 // Prevent bypass without feedback submission
-fetch(BACKEND,{
-  method:"POST",
-  body:new URLSearchParams({
-    action:"checkFeedbackStatus",
-    token
+const FEEDBACK_ENABLED = false;
+
+if(FEEDBACK_ENABLED){
+  fetch(BACKEND,{
+    method:"POST",
+    body:new URLSearchParams({
+      action:"checkFeedbackStatus",
+      token
+    })
   })
-})
-.then(r=>r.json())
-.then(res=>{
-  if(!res.submitted){
-    location.replace("feedback.html");
-  }
-});  
+  .then(r=>r.json())
+  .then(res=>{
+    if(!res.submitted){
+      location.replace("feedback.html");
+    }
+  });
+}
+
 const testsBox = document.getElementById("testsBox");
 const resultsBox = document.getElementById("resultsBox");
 const attendanceBox = document.getElementById("attendanceBox");
